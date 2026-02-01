@@ -1,0 +1,215 @@
+// Fee Management System - Prisma Schema
+// This schema is designed for a student fee tracking system
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  cancelled
+}
+
+enum PaymentMethod {
+  cash
+  cheque
+  bank_transfer
+  mobile_money
+  online
+}
+
+enum Role {
+  admin
+  accountant
+  teacher
+  parent
+}
+
+enum StudentStatus {
+  active
+  inactive
+  graduated
+  suspended
+}
+
+// Academic Term Configuration Model
+model TermDates {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  academicYear    String    // e.g., "2024-2025"
+  term            String    // "term1", "term2", "term3"
+  startDate       DateTime  // When this term starts
+  endDate         DateTime  // When this term ends
+  status          String    @default("inactive") // "active" or "inactive" (computed based on current date)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([academicYear])
+  @@index([term])
+  @@unique([academicYear, term]) // Only one term per academic year
+}
+
+// Admin/Staff User Model
+model User {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  email           String    @unique
+  username        String    @unique
+  password        String
+  fullName        String
+  phone           String?
+  avatar          String?
+  role            Role      @default(accountant)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  feePayments     FeePayment[] @relation("CreatedBy")
+}
+
+// Class/Grade Model
+model Class {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  className            String    @unique // e.g., "Form 1A", "Grade 5B"
+  description     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  students        Student[]
+  classFees       ClassFee[]
+}
+
+// Class Fee Structure Model
+model ClassFee {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  class           Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classId         String    @db.ObjectId
+  className       String    // Reference to class name for easy access
+  term            String    // "term1", "term2", "term3"
+  amount          Float     // Amount for the specific term
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  feePayments     FeePayment[]
+  
+  @@index([classId])
+  @@index([term])
+  @@unique([classId, term]) // Only one fee amount per term per class
+}
+
+// Student Model
+model Student {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  admissionNumber String    @unique
+  fullName       String
+  gender          String?
+  parentName      String?
+  parentPhone     String?
+  status          StudentStatus @default(active)
+  class           Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classId         String    @db.ObjectId
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  feePayments     FeePayment[]
+  receipts        Receipt[]
+  feeStatements   StudentFeeStatement[]
+  
+  @@index([classId])
+}
+
+// Student Fee Statement Model - Tracks cumulative fees per student per term
+model StudentFeeStatement {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId       String    @db.ObjectId
+  academicYear    String    // e.g., "2024-2025"
+  term            String    // "term1", "term2", "term3"
+  
+  // Student's class at time of statement creation (snapshot)
+  studentClassName String?   // Class name at time of statement creation (for reference and historical tracking)
+  
+  // Current term fee structure
+  currentTermFee  Float     // Total fees for current term (sum of all ClassFee amounts)
+  previousBalance Float     @default(0) // Balance carried forward from previous term
+  totalPayable    Float     // previousBalance + currentTermFee (auto-calculated)
+  
+  // Payment tracking for this term
+  amountPaid      Float     @default(0)
+  balanceAmount   Float     // totalPayable - amountPaid (auto-calculated)
+  
+  // Status and dates
+  status          PaymentStatus @default(pending)
+  termStartDate   DateTime  // When this term started
+  termEndDate     DateTime  // When this term ends
+  dueDate         DateTime  // Payment due date for this term
+  paymentDate     DateTime?
+  
+  // References and notes
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  feePayments     FeePayment[]
+  
+  @@index([studentId])
+  @@index([academicYear, term])
+  @@unique([studentId, academicYear, term]) // Only one statement per student per term per year
+}
+
+// Fee Payment Model - Individual payment transactions
+model FeePayment {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  referenceNumber String    @unique
+  
+  // Links to Student and Fee Statement
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId       String    @db.ObjectId
+  studentFeeStatement StudentFeeStatement @relation(fields: [studentFeeStatementId], references: [id], onDelete: Cascade)
+  studentFeeStatementId String @db.ObjectId
+  
+  // Optional: Link to specific ClassFee if payment is for a specific fee type
+  classFee        ClassFee? @relation(fields: [classFeeId], references: [id], onDelete: SetNull)
+  classFeeId      String?   @db.ObjectId
+  
+  // Student's class at time of payment (snapshot)
+  studentClassName String?   // Class name at time of payment (for reference)
+  
+  // Payment details
+  amount          Float     // Amount paid in this transaction
+  paymentMethod   PaymentMethod @default(cash)
+  paymentDate     DateTime  @default(now())
+  status          PaymentStatus @default(completed)
+  
+  // Notes and metadata
+  notes           String?
+  createdBy       User      @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById     String    @db.ObjectId
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  receipts        Receipt[]
+  
+  @@index([studentId])
+  @@index([studentFeeStatementId])
+  @@index([classFeeId])
+  @@index([status])
+}
+
+// Receipt Model
+model Receipt {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  receiptNumber   String    @unique
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId       String    @db.ObjectId
+  feePayment      FeePayment @relation(fields: [feePaymentId], references: [id], onDelete: Cascade)
+  feePaymentId    String    @db.ObjectId
+  amount          Float
+  paymentMethod   PaymentMethod
+  paymentDate     DateTime  @default(now())
+  description     String?
+  createdAt       DateTime  @default(now())
+  
+  @@index([studentId])
+  @@index([feePaymentId])
+}
