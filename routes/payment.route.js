@@ -1,6 +1,15 @@
 import express from "express";
-import { createPayment, getMonthlyPaymentStats, getPayments, getPaymentStats, mpesaCallback, payment, totalPayments, updatePaymentStatus } from "../controllers/payment.controller.js";
-// import { verifyToken } from "../middleware/verifyToken.js";
+import { 
+  createPayment, 
+  getMonthlyPaymentStats, 
+  getPayments, 
+  getPaymentStats, 
+  mpesaCallback, 
+  payment, 
+  totalPayments, 
+  updatePaymentStatus,
+  handleFamilyBankCallback // <-- add this
+} from "../controllers/payment.controller.js";// import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
