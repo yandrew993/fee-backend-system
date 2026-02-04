@@ -14,7 +14,7 @@ router.get("/", getAllClasses);
 router.get("/:id", getClass);
 router.get("/:id/fee-summary", getClassFeeSummary);
 router.post("/", createClass);
-router.patch("/:id", updateClass);
+router.put("/:id", updateClass);
 router.delete("/:id", deleteClass);
 
 export default router;

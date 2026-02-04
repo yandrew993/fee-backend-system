@@ -493,3 +493,41 @@ const processCallback = async (callbackData) => {
     console.error("❌ Error processing callback:", error);
   }
 };
+
+// Family Bank payment notification handler
+export const handleFamilyBankCallback = async (req, res) => {
+  try {
+    // Adjust these field names based on Family Bank's actual payload
+    const { accountNumber, amount, transactionId, paymentDate } = req.body;
+    if (!accountNumber || !amount || !transactionId) {
+      return res.status(400).json({ message: "Missing required payment fields" });
+    }
+
+    // Find the student or parent by account number
+    const student = await prisma.student.findFirst({
+      where: { admissionNumber: accountNumber }, // or use another field as needed
+    });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found for this account number" });
+    }
+
+    // Create a new payment record
+    await prisma.feePayment.create({
+      data: {
+        studentId: student.id,
+        amount: Number(amount),
+        referenceNumber: transactionId,
+        status: "completed",
+        paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
+        method: "FamilyBank",
+      },
+    });
+
+    // Optionally, update student balance or trigger other logic here
+
+    res.status(200).json({ message: "Payment processed and student updated" });
+  } catch (error) {
+    console.error("Family Bank callback error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};

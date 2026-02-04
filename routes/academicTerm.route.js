@@ -21,7 +21,7 @@ router.get("/active/:academicYear", getActiveTermsByYear);
 router.get("/search/:academicYear/:term", getTermByYearAndTerm);
 router.get("/:id", getTerm);
 router.post("/", createTerm);
-router.patch("/:id", updateTerm);
+router.put("/:id", updateTerm);
 router.delete("/:id", deleteTerm);
 
 // Balance recalculation endpoints

@@ -12,7 +12,7 @@ const router = express.Router();
 router.get("/", getAllClassFees);
 router.get("/:id", getClassFee);
 router.post("/", createClassFee);
-router.patch("/:id", updateClassFee);
+router.put("/:id", updateClassFee);
 router.delete("/:id", deleteClassFee);
 
 export default router;

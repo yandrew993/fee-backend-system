@@ -14,5 +14,6 @@ router.get("/monthly-stats", getMonthlyPaymentStats);
 router.post("/save", createPayment)
 router.post("/", payment );
 router.put("/update", updatePaymentStatus);
+router.post("/familybank-callback", handleFamilyBankCallback);
 
 export default router;

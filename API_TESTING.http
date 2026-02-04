@@ -1,0 +1,420 @@
+### Fee Management System API Testing Guide
+
+### Variables
+@baseUrl = http://localhost:3000/api
+@studentId = 
+@classId = 
+@feeId = 
+@paymentId = 
+@receiptId = 
+@token = 
+
+---
+
+## Authentication Endpoints
+
+### Register Admin User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "email": "admin@school.com",
+  "password": "admin@123",
+  "fullName": "System Administrator",
+  "phone": "+1234567890",
+  "role": "admin"
+}
+
+### Register Accountant User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "accountant",
+  "email": "accountant@school.com",
+  "password": "accountant@123",
+  "fullName": "Finance Officer",
+  "phone": "+1234567891",
+  "role": "accountant"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin@123"
+}
+
+### Forgot Password
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "admin@school.com"
+}
+
+### Verify Reset Token
+GET {{baseUrl}}/auth/verify-reset-token/YOUR_TOKEN_HERE
+
+### Reset Password
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "YOUR_TOKEN_HERE",
+  "newPassword": "newpassword@123"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+
+---
+
+## Class Management
+
+### Create Class
+POST {{baseUrl}}/classes
+Content-Type: application/json
+
+{
+  "name": "Form 1A",
+  "level": 1,
+  "capacity": 40,
+  "description": "First year class A"
+}
+
+### Get All Classes
+GET {{baseUrl}}/classes
+
+### Get Single Class
+GET {{baseUrl}}/classes/{{classId}}
+
+### Get Class Fee Summary
+GET {{baseUrl}}/classes/{{classId}}/fee-summary
+
+### Update Class
+PATCH {{baseUrl}}/classes/{{classId}}
+Content-Type: application/json
+
+{
+  "capacity": 45,
+  "description": "Updated class description"
+}
+
+### Delete Class
+DELETE {{baseUrl}}/classes/{{classId}}
+
+---
+
+## Class Fee Management
+
+### Create Class Fee
+POST {{baseUrl}}/class-fees
+Content-Type: application/json
+
+{
+  "name": "Tuition Fee",
+  "amount": 5000,
+  "dueDate": "2024-02-28",
+  "classId": "{{classId}}",
+  "isRecurring": true,
+  "frequency": "monthly",
+  "description": "Monthly tuition fee"
+}
+
+### Create Sports Fee
+POST {{baseUrl}}/class-fees
+Content-Type: application/json
+
+{
+  "name": "Sports Fee",
+  "amount": 1000,
+  "dueDate": "2024-01-31",
+  "classId": "{{classId}}",
+  "isRecurring": false,
+  "description": "Annual sports fee"
+}
+
+### Get All Class Fees
+GET {{baseUrl}}/class-fees
+
+### Get Class Fees by Class
+GET {{baseUrl}}/class-fees?classId={{classId}}
+
+### Get Single Class Fee
+GET {{baseUrl}}/class-fees/{{feeId}}
+
+### Update Class Fee
+PATCH {{baseUrl}}/class-fees/{{feeId}}
+Content-Type: application/json
+
+{
+  "amount": 5500,
+  "dueDate": "2024-03-15"
+}
+
+### Delete Class Fee
+DELETE {{baseUrl}}/class-fees/{{feeId}}
+
+---
+
+## Student Management
+
+### Create Student
+POST {{baseUrl}}/students
+Content-Type: application/json
+
+{
+  "admissionNumber": "STU-2024-001",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "2008-05-15",
+  "gender": "Male",
+  "parentName": "Jane Doe",
+  "parentPhone": "+1234567891",
+  "parentEmail": "parent@example.com",
+  "address": "123 Main Street",
+  "classId": "{{classId}}"
+}
+
+### Create Another Student
+POST {{baseUrl}}/students
+Content-Type: application/json
+
+{
+  "admissionNumber": "STU-2024-002",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "email": "alice@example.com",
+  "phone": "+1234567892",
+  "dateOfBirth": "2008-03-20",
+  "gender": "Female",
+  "parentName": "Bob Smith",
+  "parentPhone": "+1234567893",
+  "parentEmail": "parent2@example.com",
+  "address": "456 Oak Avenue",
+  "classId": "{{classId}}"
+}
+
+### Get All Students
+GET {{baseUrl}}/students
+
+### Get All Students in a Class
+GET {{baseUrl}}/students?classId={{classId}}
+
+### Get All Active Students
+GET {{baseUrl}}/students?status=active
+
+### Get Single Student
+GET {{baseUrl}}/students/{{studentId}}
+
+### Get Student Fee Summary
+GET {{baseUrl}}/students/{{studentId}}/fee-summary
+
+### Update Student
+PATCH {{baseUrl}}/students/{{studentId}}
+Content-Type: application/json
+
+{
+  "phone": "+1987654321",
+  "address": "789 Pine Street",
+  "status": "active"
+}
+
+### Delete Student
+DELETE {{baseUrl}}/students/{{studentId}}
+
+---
+
+## Fee Payment Management
+
+### Create Fee Payment for Student
+POST {{baseUrl}}/fee-payments
+Content-Type: application/json
+
+{
+  "studentId": "{{studentId}}",
+  "classFeeId": "{{feeId}}",
+  "dueDate": "2024-02-28",
+  "createdById": "{{userId}}",
+  "notes": "Payment created for tuition fee"
+}
+
+### Get All Fee Payments
+GET {{baseUrl}}/fee-payments
+
+### Get Pending Payments
+GET {{baseUrl}}/fee-payments?status=pending
+
+### Get Student's Payments
+GET {{baseUrl}}/fee-payments?studentId={{studentId}}
+
+### Get Single Fee Payment
+GET {{baseUrl}}/fee-payments/{{paymentId}}
+
+### Record Payment (Partial)
+PATCH {{baseUrl}}/fee-payments/{{paymentId}}/pay
+Content-Type: application/json
+
+{
+  "amountPaid": 2500,
+  "paymentMethod": "bank_transfer",
+  "paymentDate": "2024-01-28",
+  "receiptNotes": "Partial payment via bank transfer"
+}
+
+### Record Payment (Full)
+PATCH {{baseUrl}}/fee-payments/{{paymentId}}/pay
+Content-Type: application/json
+
+{
+  "amountPaid": 5000,
+  "paymentMethod": "cash",
+  "paymentDate": "2024-01-28",
+  "receiptNotes": "Full payment in cash"
+}
+
+### Record Payment (Mobile Money)
+PATCH {{baseUrl}}/fee-payments/{{paymentId}}/pay
+Content-Type: application/json
+
+{
+  "amountPaid": 1000,
+  "paymentMethod": "mobile_money",
+  "paymentDate": "2024-01-28",
+  "receiptNotes": "M-Pesa payment"
+}
+
+### Get Payment Statistics
+GET {{baseUrl}}/fee-payments/stats
+
+### Update Fee Payment
+PATCH {{baseUrl}}/fee-payments/{{paymentId}}
+Content-Type: application/json
+
+{
+  "dueDate": "2024-03-15",
+  "notes": "Updated due date"
+}
+
+### Delete Fee Payment
+DELETE {{baseUrl}}/fee-payments/{{paymentId}}
+
+---
+
+## Receipt Management
+
+### Get All Receipts
+GET {{baseUrl}}/receipts
+
+### Get Receipts for Student
+GET {{baseUrl}}/receipts?studentId={{studentId}}
+
+### Get Receipts for Payment
+GET {{baseUrl}}/receipts?feePaymentId={{paymentId}}
+
+### Get Single Receipt
+GET {{baseUrl}}/receipts/{{receiptId}}
+
+### Get Receipt Data (for PDF generation)
+GET {{baseUrl}}/receipts/{{receiptId}}/data
+
+### Create Receipt Manually
+POST {{baseUrl}}/receipts
+Content-Type: application/json
+
+{
+  "studentId": "{{studentId}}",
+  "feePaymentId": "{{paymentId}}",
+  "amount": 2500,
+  "paymentMethod": "bank_transfer",
+  "paymentDate": "2024-01-28",
+  "description": "Manual receipt entry"
+}
+
+### Update Receipt
+PATCH {{baseUrl}}/receipts/{{receiptId}}
+Content-Type: application/json
+
+{
+  "amount": 2600,
+  "paymentDate": "2024-01-29"
+}
+
+### Delete Receipt
+DELETE {{baseUrl}}/receipts/{{receiptId}}
+
+---
+
+## Reporting
+
+### Get Overall Report
+GET {{baseUrl}}/reports/overall
+
+### Get Overall Report (With Date Range)
+GET {{baseUrl}}/reports/overall?startDate=2024-01-01&endDate=2024-01-31
+
+### Get Report Statistics
+GET {{baseUrl}}/reports/statistics
+
+### Get Pending Fees Report
+GET {{baseUrl}}/reports/pending-fees
+
+### Get Pending Fees Report (By Class)
+GET {{baseUrl}}/reports/pending-fees?classId={{classId}}
+
+### Get Class-wise Report
+GET {{baseUrl}}/reports/class/{{classId}}
+
+### Get Student Fee Report
+GET {{baseUrl}}/reports/student/{{studentId}}
+
+---
+
+## Health Check
+
+### Check API Status
+GET http://localhost:3000/health
+
+---
+
+## Testing Workflow
+
+1. Start with **Register Admin User** to create your first admin account
+2. Use **Login** to authenticate and get token
+3. Create at least one **Class**
+4. Create at least two **Class Fees** for that class
+5. Add multiple **Students** to the class
+6. Create **Fee Payments** for each student/fee combination
+7. **Record Payments** with various amounts and methods
+8. View **Receipts** generated from payments
+9. Generate **Reports** to see overall statistics
+
+## Response Status Codes
+
+- 200: Success
+- 201: Created
+- 400: Bad Request
+- 404: Not Found
+- 500: Server Error
+
+## Notes
+
+- Replace {{baseUrl}}, {{studentId}}, {{classId}}, {{feeId}}, {{paymentId}}, {{receiptId}}, {{userId}}, {{token}} with actual values
+- All dates should be in ISO 8601 format (YYYY-MM-DD or ISO full timestamp)
+- Keep JWT token from login response for authenticated requests
+- Payment methods: cash, cheque, bank_transfer, mobile_money, online
+- Student status: active, inactive, graduated, suspended
+- Payment status: pending, completed, failed, cancelled
+
+---
+
+For more details, refer to:
+- README_API.md - Complete API documentation
+- API_EXAMPLES.md - Detailed request/response examples
+- SETUP_GUIDE.md - Installation and setup instructions

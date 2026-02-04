@@ -26,8 +26,8 @@ router.get("/export/student/:studentId/statements", exportStudentStatementsPDF);
 
 router.get("/:id", getFeePayment);
 router.post("/", createFeePayment);
-router.patch("/:id", updateFeePayment);
-router.patch("/:id/pay", recordPayment);
+router.put("/:id", updateFeePayment);
+router.put("/:id/pay", recordPayment);
 router.delete("/:id", deleteFeePayment);
 
 export default router;

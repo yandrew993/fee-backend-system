@@ -14,7 +14,7 @@ router.get("/", getAllStudents);
 router.post("/", createStudent);
 router.get("/search/:id", getStudent);
 router.get("/:id/fee-summary", getStudentFeeSummary);
-router.patch("/:id", updateStudent);
+router.put("/:id", updateStudent);
 router.delete("/:id", deleteStudent);
 router.get("/:id", getStudent);
 

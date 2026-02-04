@@ -32,7 +32,6 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:5173",
-  "https://surewayfeemanagement.surewaygroupofschools.org",
 ].filter(Boolean);
 
 app.use(
@@ -60,7 +59,7 @@ app.use(cookieParser());
 // Fee Management Routes
 app.use("/api/auth", authRoute);
 app.use("/api/users", usersRoute);
-app.use("/api/academic-terms", academicTermRoute);
+app.use("/api/academic-years", academicTermRoute);
 app.use("/api/students", studentRoute);
 app.use("/api/classes", classRoute);
 app.use("/api/class-fees", classFeeRoute);
